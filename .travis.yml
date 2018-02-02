@@ -1,21 +1,43 @@
 sudo: required
+
 services:
 - docker
+
+#addons:
+#  apt:
+#    packages:
+#    - docker-ce
+
 cache:
   directories:
   - $HOME/dot_build_cache/dot_m2
+
 env:
   global:
   - HUB_USER=yglcode
+  # HUB_PASSWD...
   - secure: MU1qRe9E3WVdO/IUZQwIat5HvbRD0BAmdVWiol3T3wcgPYcpIfEGuneGPwX2fx4tY4gsnO3Ib9C9qsF45W1NrDmh3qvPQC3NhmFCp4Ddat08qe1aIemuImC+maSd+I/BXsgvQYUdx6X7EUOjVKCgPsxT8dFjbO2y6MdfSaq9s2tvfxabNhedJCRRPSZxgfrclc388PuKtgmnapqkGEVtMR7EHdaQhJjLWXQw0Nc+DuPeF/wFdomuIx1qZY8fMmeDBeg/oUhJ+fkuSWCmWEynVR9yEDSd1Id6gfnxPwKIj1Y1wBHk/Tf+kuLrSHWueSjx/NaiBG0646rLINgvl8A9B0g+sfDPwHWqgEk4iNT1pNjqD1Sxz1arareG1/jy1U6ywGzPV5ywYaLN6YrCfK3BR80vxv0t1TkUnS2chNK4vvISjVWuciSIQNQvnVYLsWjuQFiTvH6N4QoaVRqn81XxFSovacEw6Y35JNzBPOGBXs5tSPJ0exANp1oC65BIUWKV4YkR2iB4j8U8hkEbAvUzgOFdGB1XNH7MR7M7Mt5O6QUDK4SG5DQ5HrMD6739A/sqRDIl2bZ63PHvGp9QJLXLie5iABC9BIMVqVqSGyrtUwMMeosit09bi2IFYN7FqZ1BTfrxl2by8sGAo55I0zB0sYPYhgUjq7j8YBAOgQi67J4=
+
 script:
 - ./build.sh
+
 before_deploy:
 - docker login -u "$HUB_USER" -p "$HUB_PASSWD"
+
 deploy:
-  provider: releases
-  api_key:
-    secure: n5kCaulTmVgxJIStYvJB4L8dL7PSz/KsFI7dwVsNyJwHw2Ca59Ll5kqpWLvQGo/1W+1cIcL84Ni5f2Bzi7MJnuGC0rHtjjg3WQgvz6ujZ03w0DWYUnG0BRT3Ugw/NB5oqsoXlBYi2hUL5eDRQUtiRp7ML63m5QQ9ACQZyw6kp6J5//A95SIChjei5/9dcZ42zRX7w5hpRmVge1D0TjZy6YlhAh+EpLMeBko/5QmYLAU27FmsqU+kTA5qluWs8WUAnEr8Qu3G2wTYv73f9WQA7ZVwqx4uO0CrWn6HnhYioH8zMQSff2ReiCSb2dnJrEns5P13lWg/WqtLAKNvna6NxXADxJCkTzmGblGrHU8jyL5rWk1BkLghQ9sugC68i6jVtYGB6yzJhckQGqL6Uohy5564Tv0TwYpHpBC92LxnwnAQRDiW9BZac2Hdc1AWFw7dFhWKANOt0wv4HPg4GfktXB5mGo3dRbRrpGg/N5/3XNbPYvFKr8Ou2oH1RokTz5hO/QzOqDUBBySc5SEzN3kemkcfRtsM7f0uxxk0PDOCukxkYynbW2ZT9hVz70S/ofdPfRVYq8lsgxlE9MK+xTbOcvyDa/7k338NtdkGkmRZs4wcIZeQznCRMZLDyyCZhPBiTttM6lXbqYFu4E8wTClvopuQAlpq5J44O8EjM+yNB0Y=
-  file: ./target/HelloTravis-$TRAVIS_TAG.jar
-  on:
-    repo: yglcode/travis-java
+  #deploy docker image to docker-hub
+  - provider: script
+    script: docker push yglcode/travis-java:$TRAVIS_TAG
+    skip_cleanup: true
+    on:
+      branch: master
+      tags: true
+  #deploy binaries to github releases
+  - provider: releases
+    api_key:
+      secure: rYm8ZSDiZWIzeb+NJt67XrIhZ9vX5ol61DdHpUP/1xradkvzO7nFyW2fHh80HB7KHOzhb6jvJxLEq37szB0hN2DTDUas79FwJVF6LjhKTOtfwm34KOJlH4DAxMRuVuT6j1Etr5xOcdW8lGIveKUIr6ClTbSTNjxvi8cERO6pZCGTGraG6jXx9rqK5wm7LxBh5ZdeclJ9OvQVrfnC2Daln1Mk2OTSIoF2v5Et3AS9LKu9oYydaJSSEtXW48/FcbGwShAWqBkjSR6uWcd485lHpH6hGdmo7VhTIfxnMsNfkZ9sTovebZnaeYY6tTIinERjbn2wPdJ6hSGTTBRtRMeMIWxUKUqHXsuJ+v739I4zi3u2Ws4L2HpebDfWhbjqZ46UNSzEiWhkmJTrhnR/fL6bNJK4KqU0a4ckopypWfkCNrdPAx6zBzZdIWFonzS8HZS7O9Iz1yS592d9Pz3GDlO18e2nnYk8+iMFX48enONGvFCZ22rXu0pGR3qk4dKfTz/kG4KCzcfu4NSO/p9IfBAZLdgTJIgr5ZAukz/CVEJRPRjX1QzNrQezcbhFm0oCt1QQ3eIBLYyK4e0QhgsdBIB6WUaUTiuTTF3mJXCXfR65gOHf6X1YkezUnio2ZffIfpBjlE78iAqex4yp0UmNJm9MOTUliPptHbO0MmMKZcMZccE=
+    file: ./target/HelloTravis-$TRAVIS_TAG.jar
+    skip_cleanup: true
+    on:
+      branch: master
+      tags: true
